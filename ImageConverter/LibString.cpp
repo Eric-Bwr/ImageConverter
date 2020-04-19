@@ -39,7 +39,30 @@ void LibString::append(char strData) {
     data.emplace_back(strData);
     data.emplace_back('\0');
 }
-
+LibString LibString::substring(uint64_t begin, uint64_t end) {
+    LibString sub;
+    if(end > strLen) end = strLen;
+        for(uint64_t i = begin; i < end; i++)
+            sub.append(data.at(i));
+        return sub;
+}
+uint64_t LibString::findLast(LibString searchFor) {
+    uint64_t lastLocation = 0;
+    if(this->contains(searchFor.toString())) {
+        for (uint64_t i = 0; i < strLen; i++) {
+            if (data.at(i) == searchFor.getData().at(0)) {
+                for (uint64_t j = 0; j < searchFor.size(); j++) {
+                    if (data.at(i + j) != searchFor.getData().at(j)) {
+                        break;
+                    } else {
+                        if (j == searchFor.size() - 1)  lastLocation = i;
+                    }
+                }
+            }
+        }
+    }
+    return lastLocation;
+}
 void LibString::remove(uint64_t begin, uint64_t end) {
     popNull();
 

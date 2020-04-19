@@ -4,7 +4,9 @@
 
 int errorCount = 0;
 
-bool isFlip = true;
+int desiredChannels = 0;
+
+bool isFlip = false;
 
 bool convertImage(const char* path){
     std::cout << "Processing " << path << "..." << std::endl;
@@ -13,23 +15,28 @@ bool convertImage(const char* path){
     toProcess->append("Input/");
     toProcess->append(path);
     stbi_set_flip_vertically_on_load(isFlip);
-    uint8_t* data = stbi_load(toProcess->c_str(), &width, &height, &nrComponents, 0);
+    uint8_t* data = stbi_load(toProcess->c_str(), &width, &height, &nrComponents, desiredChannels);
     if (data == nullptr) {
         std::cout << "Failed to load Image: " << path << std::endl;
         errorCount += 1;
         return false;
     }else {
-        std::string filename("Output/");
-        filename.append(std::string(getFilename((char *) path)));
-        std::string filenameWithoutExtension = filename.substr(0, filename.find_last_of('.'));
-        std::string outputFilename = filenameWithoutExtension + ".bif";
-        openFile(outputFilename.c_str(), "wb");
-        writeToFile<int>(&width, 1);
-        writeToFile<int>(&height, 1);
-        writeToFile<int>(&nrComponents, 1);
-        writeToFile<uint8_t>(data, width * height * nrComponents);
-        closeFile();
+        LibString filename("Output/");
+        filename += getFilename((char*)path);
+        filename = filename.substring(0, filename.findLast("."));
+        filename += ".bif";
+        Binary_buffer binaryBuffer;
+        binary_buffer_create(&binaryBuffer, 5000000);
+        auto widthData = (uint64_t)width;
+        binary_buffer_push64(&binaryBuffer, widthData);
+        auto heightData = (uint64_t)height;
+        binary_buffer_push64(&binaryBuffer, heightData);
+        auto compData = (uint64_t)nrComponents;
+        binary_buffer_push64(&binaryBuffer, compData);
+        binary_buffer_push_string_with_termination(&binaryBuffer, (char*)data, width * height * nrComponents);
+        binary_buffer_write_to_file(&binaryBuffer, filename.toString());
         free(data);
+        binary_buffer_destroy(&binaryBuffer);
     }
     toProcess->clear();
     delete toProcess;
@@ -43,10 +50,12 @@ int main(int argc, char *argv[]){
     else
         files = getFilenames(argv[0], 18);
     if(files.empty()) {
-        std::cout << "Failed to load Files" << std::endl;
+        std::cout << "Failed to locate Files" << std::endl;
         system("pause");
         return 0;
     }
+    std::cout << "Desired Channels: ";
+    std::cin >> desiredChannels;
     for(auto file : files){
         convertImage(file.data());
     }

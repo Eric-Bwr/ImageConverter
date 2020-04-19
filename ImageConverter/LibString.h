@@ -6,7 +6,7 @@
 #include <ostream>
 
 class LibString {
-private:
+public:
     uint64_t strLen = 0;
     std::vector<char> data;
 
@@ -19,6 +19,8 @@ public:
     void append(const char* string);
     void append(void* strData);
     void append(char strData);
+    uint64_t findLast(LibString searchFor);
+    LibString substring(uint64_t begin, uint64_t end);
     void remove(uint64_t begin, uint64_t end);
 
     std::vector<char> getData() const;
