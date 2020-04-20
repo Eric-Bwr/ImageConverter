@@ -16,6 +16,8 @@ bool convertImage(const char* path){
     toProcess->append(path);
     stbi_set_flip_vertically_on_load(isFlip);
     uint8_t* data = stbi_load(toProcess->c_str(), &width, &height, &nrComponents, desiredChannels);
+    if(desiredChannels == 0)
+        desiredChannels = nrComponents;
     if (data == nullptr) {
         std::cout << "Failed to load Image: " << path << std::endl;
         errorCount += 1;
@@ -31,9 +33,9 @@ bool convertImage(const char* path){
         binary_buffer_push64(&binaryBuffer, widthData);
         auto heightData = (uint64_t)height;
         binary_buffer_push64(&binaryBuffer, heightData);
-        auto compData = (uint64_t)nrComponents;
+        auto compData = (uint64_t)desiredChannels;
         binary_buffer_push64(&binaryBuffer, compData);
-        binary_buffer_push_string_with_termination(&binaryBuffer, (char*)data, width * height * nrComponents);
+        binary_buffer_push_string_with_termination(&binaryBuffer, (char*)data, width * height * desiredChannels);
         binary_buffer_write_to_file(&binaryBuffer, filename.toString());
         free(data);
         binary_buffer_destroy(&binaryBuffer);
