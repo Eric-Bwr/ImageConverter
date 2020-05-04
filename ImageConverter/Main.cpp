@@ -21,6 +21,7 @@ bool convertImage(const char* path){
     if (data == nullptr) {
         std::cout << "Failed to load Image: " << path << std::endl;
         errorCount += 1;
+        system("pause");
         return false;
     }else {
         LibString filename("Output/");
